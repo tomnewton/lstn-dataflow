@@ -65,8 +65,8 @@ public class Podcasts {
     public static class PrepOutput extends DoFn<KV<String, Iterable<InputPodcastVO>>, OutputPodcastVO> {
 
         private static final long serialVersionUID = -6301862064487278600L;
-
-		@ProcessElement
+        
+        @ProcessElement
         public void processElement(@Element  KV<String, Iterable<InputPodcastVO>> element, OutputReceiver<OutputPodcastVO> receiver) {
 
             OutputPodcastVO out = new OutputPodcastVO();
@@ -133,7 +133,7 @@ public class Podcasts {
 
     public static class MergePodcasts extends PTransform<PCollection<String>, PCollection<PubsubMessage>> {
         private static final long serialVersionUID = 1731901689402460749L;
-        
+
         @Override
         public PCollection<PubsubMessage> expand(PCollection<String> lines) {
 
