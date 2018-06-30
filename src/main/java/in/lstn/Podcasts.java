@@ -110,7 +110,7 @@ public class Podcasts {
 
         private static final long serialVersionUID = -6196930713289294306L;
 
-		@Override
+        @Override
         public PubsubMessage apply(OutputPodcastVO out) {
             PodcastMessages.PodcastDirectoryUpdate.Builder update = 
                 PodcastMessages.PodcastDirectoryUpdate.newBuilder()
@@ -133,8 +133,8 @@ public class Podcasts {
 
     public static class MergePodcasts extends PTransform<PCollection<String>, PCollection<PubsubMessage>> {
         private static final long serialVersionUID = 1731901689402460749L;
-
-		@Override
+        
+        @Override
         public PCollection<PubsubMessage> expand(PCollection<String> lines) {
 
             // Convert lines of text into InputPodcastVOs, keyed on their feedUrls.
