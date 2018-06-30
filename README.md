@@ -16,5 +16,5 @@ brew cask install java8
 Then ensure you've exported $JAVA_HOME which is most likely:
 
 ```bash
-/Library/Java/Home
+export JAVA_HOME=/Library/Java/Home
 ```
