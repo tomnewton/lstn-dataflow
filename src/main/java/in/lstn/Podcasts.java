@@ -25,7 +25,6 @@ import org.apache.beam.sdk.transforms.SimpleFunction;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
-import in.lstn.coders.JsonCoder;
 import in.lstn.pubsub.messages.PodcastMessages;
 import in.lstn.vo.InputPodcastVO;
 import in.lstn.vo.OutputPodcastVO;
@@ -174,10 +173,6 @@ public class Podcasts {
 
     static void runPodcasts(PodcastOptions options) {
         Pipeline p = Pipeline.create(options);
-
-        CoderRegistry cr = p.getCoderRegistry();
-        cr.registerCoderForClass(InputPodcastVO.class, JsonCoder.of(InputPodcastVO.class));
-        cr.registerCoderForClass(OutputPodcastVO.class, JsonCoder.of(OutputPodcastVO.class));
 
         p.apply("ReadLines", TextIO.read().from(options.getInputFile()))
         .apply("Merge Podcast Records", new MergePodcasts())

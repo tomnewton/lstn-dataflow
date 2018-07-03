@@ -40,7 +40,6 @@ import org.junit.runners.JUnit4;
 
 import in.lstn.Podcasts.InputConverterFn;
 import in.lstn.Podcasts.PrepOutput;
-import in.lstn.coders.JsonCoder;
 import in.lstn.vo.InputPodcastVO;
 import in.lstn.vo.OutputPodcastVO;
 import in.lstn.vo.OutputPodcastVO.CountryInfoVO;
@@ -101,70 +100,6 @@ public class PodcastsTest {
     
     p.run().waitUntilFinish();
   }
-
-  @Test
-  public void testCoderInput() {
-    InputPodcastVO vo = new InputPodcastVO();
-    vo.isPopular = true;
-    vo.name = "name";
-    vo.category = "cat";
-    vo.countryCode = "US";
-    vo.genres = new String[]{"one", "two"};
-    vo.feedUrl = "http://www.google.com/";
-
-    JsonCoder<InputPodcastVO> coder = JsonCoder.of(InputPodcastVO.class);
-    ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-    ByteArrayInputStream inStream;
-
-    try {
-      coder.encode(vo, outStream);
-      outStream.close();
-      byte[] bytes = outStream.toByteArray();
-      inStream = new ByteArrayInputStream(bytes);
-      InputPodcastVO out = coder.decode(inStream);
-      assertThat(out.feedUrl, is(vo.feedUrl));
-      assertThat(out.category, is(vo.category));
-      assertThat(out.genres, is(vo.genres));
-      assertThat(out.name, is(vo.name));
-      assertThat(out.countryCode, is(vo.countryCode));
-    } catch (CoderException e) {
-      fail();
-    } catch ( IOException e) {
-      fail();
-    }
-  }
-
-  @Test
-  public void testCoder() {
-    OutputPodcastVO vo = new OutputPodcastVO();
-    vo.category = "Test";
-    vo.countryInfo = new HashMap<String, CountryInfoVO>();
-    vo.countryInfo.put("US", new CountryInfoVO(true, false));
-    vo.feedUrl = "TestURL";
-    vo.genres = new String[]{"one", "two"};
-
-    JsonCoder<OutputPodcastVO> coder = JsonCoder.of(OutputPodcastVO.class);
-    ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-    ByteArrayInputStream inStream;
-
-    try {
-      coder.encode(vo, outStream);
-      outStream.close();
-      byte[] bytes = outStream.toByteArray();
-      inStream = new ByteArrayInputStream(bytes);
-      OutputPodcastVO out = coder.decode(inStream);
-      assertThat(out.category, is("Test"));
-      assertThat(out.genres.length, is(2));
-      assertThat(out.feedUrl, is("TestURL"));
-      assertThat(out.countryInfo.get("US").isPopular, is(false));
-      assertThat(out.countryInfo.get("US").isPublished, is(true));
-    } catch (CoderException e) {
-      fail();
-    } catch (IOException e) {
-      fail();
-    }
-  }
-
 
   @Test
   @Category(ValidatesRunner.class)
