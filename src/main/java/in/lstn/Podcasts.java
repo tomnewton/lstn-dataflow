@@ -29,8 +29,7 @@ import in.lstn.coders.JsonCoder;
 import in.lstn.pubsub.messages.PodcastMessages;
 import in.lstn.vo.InputPodcastVO;
 import in.lstn.vo.OutputPodcastVO;
-import in.lstn.vo.OutputPodcastVO.CountryInfo;
-
+import in.lstn.vo.OutputPodcastVO.CountryInfoVO;
 
 public class Podcasts {
     
@@ -64,7 +63,7 @@ public class Podcasts {
 
     public static class PrepOutput extends DoFn<KV<String, Iterable<InputPodcastVO>>, OutputPodcastVO> {
 
-        private static final long serialVersionUID = -6301862064487278600L;
+        private static final long serialVersionUID = 1L;
         
         @ProcessElement
         public void processElement(@Element  KV<String, Iterable<InputPodcastVO>> element, OutputReceiver<OutputPodcastVO> receiver) {
@@ -72,7 +71,7 @@ public class Podcasts {
             OutputPodcastVO out = new OutputPodcastVO();
             
             Map<String, Boolean> genres = new HashMap<String, Boolean>();
-            Map<String, CountryInfo> countryInfo = new HashMap<String, CountryInfo>();
+            Map<String, CountryInfoVO> countryInfo = new HashMap<String, CountryInfoVO>();
 
             InputPodcastVO latest = null;
             Iterator<InputPodcastVO> iter = element.getValue().iterator();
@@ -83,7 +82,7 @@ public class Podcasts {
                     genres.put(latest.genres[i], true);
                 }
 
-                countryInfo.put(latest.countryCode, new CountryInfo(latest.isPopular, true));
+                countryInfo.put(latest.countryCode, new CountryInfoVO(true, latest.isPopular));
             }
 
             if ( latest == null ) {
@@ -108,7 +107,7 @@ public class Podcasts {
 
     public static class ConvertToPubsubMessage extends SimpleFunction<OutputPodcastVO, PubsubMessage> {
 
-        private static final long serialVersionUID = -6196930713289294306L;
+        private static final long serialVersionUID = 1L;
 
         @Override
         public PubsubMessage apply(OutputPodcastVO out) {
@@ -118,7 +117,7 @@ public class Podcasts {
                 .setFeedUrl(out.feedUrl)
                 .setName(out.name);
 
-            for ( Map.Entry<String, CountryInfo> entry: out.countryInfo.entrySet() ){
+            for ( Map.Entry<String, in.lstn.vo.OutputPodcastVO.CountryInfoVO> entry: out.countryInfo.entrySet() ){
                 PodcastMessages.PodcastDirectoryUpdate.CountryInfo nfo = 
                     PodcastMessages.PodcastDirectoryUpdate.CountryInfo.newBuilder()
                     .setIsPopular(entry.getValue().isPopular)
@@ -132,7 +131,7 @@ public class Podcasts {
     }
 
     public static class MergePodcasts extends PTransform<PCollection<String>, PCollection<PubsubMessage>> {
-        private static final long serialVersionUID = 1731901689402460749L;
+        private static final long serialVersionUID = 1L;
 
         @Override
         public PCollection<PubsubMessage> expand(PCollection<String> lines) {

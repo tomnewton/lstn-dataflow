@@ -9,10 +9,14 @@ import java.nio.charset.StandardCharsets;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonIOException;
+import com.google.gson.LongSerializationPolicy;
+import com.google.gson.stream.JsonReader;
 
 import org.apache.beam.sdk.coders.CoderException;
 import org.apache.beam.sdk.coders.CustomCoder;
 import org.apache.beam.sdk.values.TypeDescriptor;
+
 
 public class JsonCoder<T> extends CustomCoder<T> {
     private static final long serialVersionUID = -3265818032419610814L;
@@ -34,7 +38,9 @@ public class JsonCoder<T> extends CustomCoder<T> {
     protected JsonCoder(Class<T> clazz) {
         this.type = clazz;
         this.typeDescriptor = TypeDescriptor.of(type);
-        this.gson = new GsonBuilder().setLenient().create();
+        this.gson = new GsonBuilder()
+        .setLenient()
+        .create();
     }
 
     public Class<T> getType() {
@@ -62,18 +68,24 @@ public class JsonCoder<T> extends CustomCoder<T> {
 
 	@Override
 	public void encode(T value, OutputStream outStream) throws CoderException, IOException {
-        if ( value != null) {
-            String json = gson.toJson(value);
-            outStream.write(json.getBytes(StandardCharsets.UTF_8));
-        }
+        //if ( value != null) {
+            String json = gson.toJson(value, this.type);
+            byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+            outStream.write(bytes);
+        //}
 	}
 
 	@Override
 	public T decode(InputStream inStream) throws CoderException, IOException {
         Reader reader = new InputStreamReader(inStream, StandardCharsets.UTF_8);
-        if ( reader.ready() ) {        
-            T decoded = gson.fromJson(reader, this.type);
-            return decoded;
+        if ( reader.ready() ) {
+            try {
+                T decoded = gson.fromJson(reader, this.type);
+                return decoded;
+            } catch (JsonIOException e) {
+                throw e;
+            }
+            
         }
         return null;
 	}

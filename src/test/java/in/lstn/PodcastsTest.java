@@ -1,18 +1,34 @@
 package in.lstn;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
+import com.google.api.client.json.Json;
 import com.google.common.collect.Iterables;
+import com.google.protobuf.ByteString.Output;
 
+import org.apache.beam.sdk.coders.Coder;
+import org.apache.beam.sdk.coders.CoderException;
+import org.apache.beam.sdk.coders.IterableCoder;
+import org.apache.beam.sdk.coders.KvCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.testing.ValidatesRunner;
+import org.apache.beam.sdk.transforms.Count;
 import org.apache.beam.sdk.transforms.Create;
+import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
@@ -23,8 +39,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import in.lstn.Podcasts.InputConverterFn;
+import in.lstn.Podcasts.PrepOutput;
+import in.lstn.coders.JsonCoder;
 import in.lstn.vo.InputPodcastVO;
-
+import in.lstn.vo.OutputPodcastVO;
+import in.lstn.vo.OutputPodcastVO.CountryInfoVO;
 /**
  * Tests of Podcasts
  */
@@ -51,6 +70,7 @@ public class PodcastsTest {
     
     PCollection<String> lines = p.apply(Create.of(INPUT).withCoder(StringUtf8Coder.of()));
 
+   
     PCollection<KV<String, InputPodcastVO>> vos = lines.apply(
         ParDo.of(new InputConverterFn()));
     
@@ -79,6 +99,92 @@ public class PodcastsTest {
       return null;
     });
     
+    p.run().waitUntilFinish();
+  }
+
+  @Test
+  public void testCoderInput() {
+    InputPodcastVO vo = new InputPodcastVO();
+    vo.isPopular = true;
+    vo.name = "name";
+    vo.category = "cat";
+    vo.countryCode = "US";
+    vo.genres = new String[]{"one", "two"};
+    vo.feedUrl = "http://www.google.com/";
+
+    JsonCoder<InputPodcastVO> coder = JsonCoder.of(InputPodcastVO.class);
+    ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+    ByteArrayInputStream inStream;
+
+    try {
+      coder.encode(vo, outStream);
+      outStream.close();
+      byte[] bytes = outStream.toByteArray();
+      inStream = new ByteArrayInputStream(bytes);
+      InputPodcastVO out = coder.decode(inStream);
+      assertThat(out.feedUrl, is(vo.feedUrl));
+      assertThat(out.category, is(vo.category));
+      assertThat(out.genres, is(vo.genres));
+      assertThat(out.name, is(vo.name));
+      assertThat(out.countryCode, is(vo.countryCode));
+    } catch (CoderException e) {
+      fail();
+    } catch ( IOException e) {
+      fail();
+    }
+  }
+
+  @Test
+  public void testCoder() {
+    OutputPodcastVO vo = new OutputPodcastVO();
+    vo.category = "Test";
+    vo.countryInfo = new HashMap<String, CountryInfoVO>();
+    vo.countryInfo.put("US", new CountryInfoVO(true, false));
+    vo.feedUrl = "TestURL";
+    vo.genres = new String[]{"one", "two"};
+
+    JsonCoder<OutputPodcastVO> coder = JsonCoder.of(OutputPodcastVO.class);
+    ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+    ByteArrayInputStream inStream;
+
+    try {
+      coder.encode(vo, outStream);
+      outStream.close();
+      byte[] bytes = outStream.toByteArray();
+      inStream = new ByteArrayInputStream(bytes);
+      OutputPodcastVO out = coder.decode(inStream);
+      assertThat(out.category, is("Test"));
+      assertThat(out.genres.length, is(2));
+      assertThat(out.feedUrl, is("TestURL"));
+      assertThat(out.countryInfo.get("US").isPopular, is(false));
+      assertThat(out.countryInfo.get("US").isPublished, is(true));
+    } catch (CoderException e) {
+      fail();
+    } catch (IOException e) {
+      fail();
+    }
+  }
+
+
+  @Test
+  @Category(ValidatesRunner.class)
+  public void testPrepOutput() throws Exception {
+    
+    PCollection<String> lines = p.apply(Create.of(INPUT).withCoder(StringUtf8Coder.of()));
+
+    PCollection<KV<String, InputPodcastVO>> vos = lines.apply(
+        ParDo.of(new InputConverterFn()));
+     
+    PCollection<KV<String, Iterable<InputPodcastVO>>> byKey = vos.apply(GroupByKey.create());
+
+    PCollection<OutputPodcastVO> output = byKey.apply(ParDo.of(new PrepOutput()));
+
+
+    PAssert.that(output).satisfies(contents -> {
+      assertThat(Iterables.size(contents), is(3));
+      return null;
+    });
+
     p.run().waitUntilFinish();
   }
 }
