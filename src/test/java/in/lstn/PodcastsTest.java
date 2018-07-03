@@ -117,6 +117,22 @@ public class PodcastsTest {
 
     PAssert.that(output).satisfies(contents -> {
       assertThat(Iterables.size(contents), is(3));
+      assertThat(Iterables.tryFind(contents, item -> item.feedUrl.equals("http://optionalpha.libsyn.com/rss")).orNull(), notNullValue());
+      assertThat(Iterables.tryFind(contents, item -> item.feedUrl.equals("http://feeds.feedburner.com/smalldoseswithamandaseales")).orNull(), notNullValue());
+      assertThat(Iterables.tryFind(contents, item -> item.feedUrl.equals("http://feeds.feedburner.com/EpicenterBitcoin")).orNull(), notNullValue());
+
+      OutputPodcastVO first = Iterables.find(contents, item -> item.feedUrl.equals("http://optionalpha.libsyn.com/rss"));
+      assertThat(first.countryInfo.size(), is(2));
+      assertThat(first.countryInfo.containsKey("US"), is(true));
+      assertThat(first.countryInfo.containsKey("CA"), is(true));
+      assertThat(first.countryInfo.get("US").isPopular, is(false));
+      assertThat(first.countryInfo.get("CA").isPopular, is(true));
+      assertThat(first.countryInfo.get("US").isPublished, is(true));
+      assertThat(first.countryInfo.get("CA").isPublished, is(true));
+      assertThat(first.category, is("Business"));
+      assertThat(first.name, is("The Option Alpha Podcast: Options Trading | Stock Options | Stock Trading | Trading Online"));
+      assertThat(first.genres, is(new String[]{"Investing", "Podcasts", "Business"}));
+
       return null;
     });
 
