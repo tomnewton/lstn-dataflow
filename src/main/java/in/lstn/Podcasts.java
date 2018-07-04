@@ -1,5 +1,6 @@
 package in.lstn;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -115,7 +116,8 @@ public class Podcasts {
                 PodcastMessages.PodcastDirectoryUpdate.newBuilder()
                 .setCategory(out.category)
                 .setFeedUrl(out.feedUrl)
-                .setName(out.name);
+                .setName(out.name)
+                .addAllGenre(Arrays.asList(out.genres));
 
             for ( Map.Entry<String, in.lstn.vo.OutputPodcastVO.CountryInfoVO> entry: out.countryInfo.entrySet() ){
                 PodcastMessages.PodcastDirectoryUpdate.CountryInfo nfo = 
