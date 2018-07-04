@@ -54,7 +54,7 @@ jobs: # a collection of steps
           path: target/surefire-reports
       
       - store_artifacts: # store the uberjar as an artifact
-          path: target/lstn-dataflow-$VERSION-SNAPSHOT.jar
+          path: target/lstn-dataflow-{$VERSION}-SNAPSHOT.jar
 
   deploy:
     <<: *defaults
