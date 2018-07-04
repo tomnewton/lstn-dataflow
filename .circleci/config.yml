@@ -90,7 +90,6 @@ jobs: # a collection of steps
               -Dexec.args="--runner=DataflowRunner \
                             --project=${GCLOUD_PROJECT_DEV} \
                             --stagingLocation=gs://${GCS_DEV_DATAFLOW_BUCKET}/staging \
-                            --gcpTempLocation=gs://${GCS_DEV_DATAFLOW_BUCKET}/tmp \
                             --templateLocation=gs://${GCS_DEV_DATAFLOW_BUCKET}/templates/podcasts"
 
 workflows:
