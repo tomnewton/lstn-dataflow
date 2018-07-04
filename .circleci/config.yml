@@ -4,7 +4,8 @@ aliases:
     working_directory: ~/lstn-dataflow # directory where steps will run
     docker:
       - image: circleci/openjdk:8-jdk-browsers # ...with this image as the primary container; this is where all `steps` will run
-
+        environment:
+          GCS_DEV_DATAFLOW_BUCKET: lstn-in-dev-dataflow
   - &init-gcloud
     run:
       name: Prep gcloud
@@ -48,12 +49,28 @@ jobs: # a collection of steps
       - run: mvn dependency:go-offline # gets the project dependencies
       - *save-cache
       - run: mvn package # run the actual tests
-      
+      - *generate-and-set-version-env
       - store_test_results: # uploads the test metadata from the `target/surefire-reports` directory so that it can show up in the CircleCI dashboard. 
           path: target/surefire-reports
       
       - store_artifacts: # store the uberjar as an artifact
-          path: target/lstn-dataflow-0.0.1-SNAPSHOT.jar
+          path: target/lstn-dataflow-$VERSION-SNAPSHOT.jar
+
+  deploy:
+    <<: *defaults
+    steps:
+      - *restore-cache
+      - *generate-and-set-version-env
+      - run:
+          name: Deploy dataflow template
+          command: |
+            mvn compile exec:java \
+              -Dexec.mainClass=in.lstn.Podcasts \
+              -Dexec.args="--runner=DataflowRunner \
+                            --project=$GCLOUD_PROJECT_DEV \
+                            --stagingLocation=gs://$GCS_DEV_DATAFLOW_BUCKET/staging \
+                            --output=gs://$GCS_DEV_DATAFLOW_BUCKET/output \
+                            --templateLocation=gs://$GCS_DEV_DATAFLOW_BUCKET/templates/podcasts"
 
 workflows:
   version: 2
