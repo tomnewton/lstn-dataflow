@@ -26,6 +26,8 @@ aliases:
         sudo apt-get update && sudo apt-get install google-cloud-sdk
 
         echo $GCLOUD_SERVICE_KEY_DEV > ${HOME}/gcloud-service-key.json
+        export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
+        echo $GOOGLE_APPLICATION_CREDENTIALS
         gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
         gcloud config set project ${GCLOUD_PROJECT_DEV}
         gcloud auth configure-docker --quiet
