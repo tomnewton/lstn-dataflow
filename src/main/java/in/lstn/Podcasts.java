@@ -175,9 +175,9 @@ public class Podcasts {
     static void runPodcasts(PodcastOptions options) {
         Pipeline p = Pipeline.create(options);
 
-        p.apply("ReadLines", TextIO.read().from(options.getInputFile().get()))
+        p.apply("ReadLines", TextIO.read().from(options.getInputFile()))
         .apply("Merge Podcast Records", new MergePodcasts())
-        .apply("Pubsub", PubsubIO.writeMessages().to(options.getOutputTopic().get()));
+        .apply("Pubsub", PubsubIO.writeMessages().to(options.getOutputTopic()));
     
         p.run();
       }
