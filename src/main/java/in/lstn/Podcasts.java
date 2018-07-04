@@ -16,6 +16,7 @@ import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
+import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.MapElements;
@@ -159,7 +160,7 @@ public class Podcasts {
          */
         @Description("Path of the file to read from")
         @Default.String("gs://spider-dumps/latest/*")
-        String getInputFile();
+        ValueProvider<String> getInputFile();
         void setInputFile(String value);
 
         /**
@@ -167,18 +168,18 @@ public class Podcasts {
          */
         @Description("Topic to write the results to...")
         @Default.String("projects/lstn-in-dev/topics/directory-update")
-        String getOutputTopic();
+        ValueProvider<String> getOutputTopic();
         void setOutputTopic(String value);
     }
 
     static void runPodcasts(PodcastOptions options) {
         Pipeline p = Pipeline.create(options);
 
-        p.apply("ReadLines", TextIO.read().from(options.getInputFile()))
+        p.apply("ReadLines", TextIO.read().from(options.getInputFile().get()))
         .apply("Merge Podcast Records", new MergePodcasts())
-        .apply("Pubsub", PubsubIO.writeMessages().to(options.getOutputTopic()));
+        .apply("Pubsub", PubsubIO.writeMessages().to(options.getOutputTopic().get()));
     
-        p.run().waitUntilFinish();
+        p.run();
       }
     
       public static void main(String[] args) {

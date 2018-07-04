@@ -3,30 +3,16 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
-import com.google.api.client.json.Json;
 import com.google.common.collect.Iterables;
-import com.google.protobuf.ByteString.Output;
 
-import org.apache.beam.sdk.coders.Coder;
-import org.apache.beam.sdk.coders.CoderException;
-import org.apache.beam.sdk.coders.IterableCoder;
-import org.apache.beam.sdk.coders.KvCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.testing.ValidatesRunner;
-import org.apache.beam.sdk.transforms.Count;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.ParDo;
@@ -42,7 +28,6 @@ import in.lstn.Podcasts.InputConverterFn;
 import in.lstn.Podcasts.PrepOutput;
 import in.lstn.vo.InputPodcastVO;
 import in.lstn.vo.OutputPodcastVO;
-import in.lstn.vo.OutputPodcastVO.CountryInfoVO;
 /**
  * Tests of Podcasts
  */
@@ -95,7 +80,8 @@ public class PodcastsTest {
       items = Iterables.toArray(alpha, InputPodcastVO.class);
       assertThat(items[0].countryCode, not(items[1].countryCode));
       assertThat(items[0].isPopular, not(items[1].isPopular));
-      return null;
+      
+      return null; // no problemo.
     });
     
     p.run().waitUntilFinish();
@@ -133,7 +119,7 @@ public class PodcastsTest {
       assertThat(first.name, is("The Option Alpha Podcast: Options Trading | Stock Options | Stock Trading | Trading Online"));
       assertThat(first.genres, is(new String[]{"Investing", "Podcasts", "Business"}));
 
-      return null;
+      return null; // no problemo.
     });
 
     p.run().waitUntilFinish();

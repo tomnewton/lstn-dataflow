@@ -18,3 +18,19 @@ Then ensure you've exported $JAVA_HOME which is most likely:
 ```bash
 export JAVA_HOME=/Library/Java/Home
 ```
+
+## Deploying
+
+The dataflow jobs here are published as [Dataflow Templates](https://cloud.google.com/dataflow/docs/templates/creating-templates).
+
+Our circle.yml file will publish the templates using the following command:
+
+```bash
+ mvn compile exec:java \
+     -Dexec.mainClass=in.lstn.Podcasts \
+     -Dexec.args="--runner=DataflowRunner \
+                  --project=lstn-in-dev \
+                  --stagingLocation=gs://lstn-in-dev-dataflow/staging \
+                  --output=gs://lstn-in-dev-dataflow/output \
+                  --templateLocation=gs://lstn-in-dev-dataflow/templates/podcasts"
+```

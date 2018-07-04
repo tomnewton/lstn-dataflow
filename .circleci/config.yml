@@ -1,26 +1,52 @@
 version: 2 # use CircleCI 2.0
-jobs: # a collection of steps
-  build: # runs not using Workflows must have a `build` job as entry point
-    
+aliases:
+  - &defaults
     working_directory: ~/lstn-dataflow # directory where steps will run
-
-    docker: # run the steps with Docker
+    docker:
       - image: circleci/openjdk:8-jdk-browsers # ...with this image as the primary container; this is where all `steps` will run
 
+  - &init-gcloud
+    run:
+      name: Prep gcloud
+      command: |
+        echo $GCLOUD_SERVICE_KEY_DEV > ${HOME}/gcloud-service-key.json
+        gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
+        gcloud config set project ${GCLOUD_PROJECT_DEV}
+        gcloud auth configure-docker --quiet
+        gcloud info
+
+  - &update-gcloud-components 
+    run:
+      name: update gcloud components 
+      command: |
+        apt-get update
+
+  - &generate-and-set-version-env
+    run: 
+      name: Generate & set version
+      command: |
+        echo 'export VERSION=${CIRCLE_TAG//\./-}' >> $BASH_ENV
+        source $BASH_ENV
+
+  - &restore-cache
+    restore_cache:
+      key: lstn-dataflow-{{ checksum "pom.xml" }}
+
+  - &save-cache
+    save_cache:
+      paths:
+        - ~/.m2
+      key: lstn-dataflow-{{ checksum "pom.xml" }}
+
+jobs: # a collection of steps
+  build: # runs not using Workflows must have a `build` job as entry point
+    <<: *defaults
+
     steps: # a collection of executable commands
-
       - checkout # check out source code to working directory
-
-      - restore_cache: # restore the saved cache after the first run or if `pom.xml` has changed
-          key: lstn-dataflow-{{ checksum "pom.xml" }}
-      
+      - *restore-cache
       - run: mvn dependency:go-offline # gets the project dependencies
-      
-      - save_cache: # saves the project dependencies
-          paths:
-            - ~/.m2
-          key: lstn-dataflow-{{ checksum "pom.xml" }}
-      
+      - *save-cache
       - run: mvn package # run the actual tests
       
       - store_test_results: # uploads the test metadata from the `target/surefire-reports` directory so that it can show up in the CircleCI dashboard. 
