@@ -54,3 +54,30 @@ jobs: # a collection of steps
       
       - store_artifacts: # store the uberjar as an artifact
           path: target/lstn-dataflow-0.0.1-SNAPSHOT.jar
+
+workflows:
+  version: 2
+  test_suite:
+    jobs:
+      - build:
+          filters:
+            tags:
+              ignore: /^lstn.*/
+
+  build_and_deploy:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /^lstn-dataflow.*/
+            branches:
+              ignore: /.*/
+
+      - deploy:
+          requires:
+            - build
+          filters: 
+            tags:
+              only: /^lstn-dataflow-v[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}/  #lstn-dataflow-v[0:999].[0:999].[0:999]
+            branches:
+              ignore: /.*/
