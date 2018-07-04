@@ -161,7 +161,7 @@ public class Podcasts {
         @Description("Path of the file to read from")
         @Default.String("gs://spider-dumps/latest/*")
         ValueProvider<String> getInputFile();
-        void setInputFile(String value);
+        void setInputFile(ValueProvider<String> value);
 
         /**
          * Set this required option to specify which Pubsub Topic to write to...
@@ -169,7 +169,7 @@ public class Podcasts {
         @Description("Topic to write the results to...")
         @Default.String("projects/lstn-in-dev/topics/directory-update")
         ValueProvider<String> getOutputTopic();
-        void setOutputTopic(String value);
+        void setOutputTopic(ValueProvider<String> value);
     }
 
     static void runPodcasts(PodcastOptions options) {
