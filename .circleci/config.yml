@@ -6,21 +6,17 @@ aliases:
       - image: circleci/openjdk:8-jdk-browsers # ...with this image as the primary container; this is where all `steps` will run
         environment:
           GCS_DEV_DATAFLOW_BUCKET: lstn-in-dev-dataflow
+  
   - &init-gcloud
     run:
       name: Prep gcloud
       command: |
+        apt-get update  #update gcloud
         echo $GCLOUD_SERVICE_KEY_DEV > ${HOME}/gcloud-service-key.json
         gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
         gcloud config set project ${GCLOUD_PROJECT_DEV}
         gcloud auth configure-docker --quiet
         gcloud info
-
-  - &update-gcloud-components 
-    run:
-      name: update gcloud components 
-      command: |
-        apt-get update
 
   - &generate-and-set-version-env
     run: 
@@ -69,6 +65,7 @@ jobs: # a collection of steps
           at: ~/
       - *restore-cache
       - *generate-and-set-version-env
+      - *init-gcloud
       - run:
           name: Deploy dataflow template
           command: |
