@@ -38,6 +38,7 @@ aliases:
       paths:
         - ~/.m2
       key: lstn-dataflow-{{ checksum "pom.xml" }}
+    
 
 jobs: # a collection of steps
   build: # runs not using Workflows must have a `build` job as entry point
@@ -55,10 +56,17 @@ jobs: # a collection of steps
       
       - store_artifacts: # store the uberjar as an artifact
           path: target/lstn-dataflow-bundled-0.0.1.jar
+      
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - lstn-dataflow
 
   deploy:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: ~/
       - *restore-cache
       - *generate-and-set-version-env
       - run:
